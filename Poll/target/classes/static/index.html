@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Voting System</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background-color: #121212;
+            color: white;
+        }
+        .card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0px 0px 10px #00000088;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #4caf50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        input {
+            padding: 8px;
+            width: 250px;
+            border-radius: 5px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label>Username:</label><br>
+            <input type="text" id="username" required><br><br>
+
+            <label>Password:</label><br>
+            <input type="password" id="password" required><br><br>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="card" id="voteForm" style="display:none;">
+        <h2>Vote for Your Candidate</h2>
+
+        <label>Select Candidate:</label><br><br>
+        <div id="candidateList"></div><br>
+
+        <button type="submit" id="voteBtn">Submit Vote</button>
+    </div>
+
+    <h3 id="result" style="color: #4caf50;"></h3>
+
+    <script>
+        const candidates = [
+            { name: 'Mohan', icon: '🧑‍💼' },
+            { name: 'Levin', icon: '🧑‍🔧' },
+            { name: 'Naveen', icon: '🧑‍🎓' },
+            { name: 'Lata', icon: '👩‍🏫' },
+            { name: 'NOTA', icon: '' }
+        ];
+
+        // Load candidates into radio buttons
+        function loadCandidates() {
+            let list = document.getElementById('candidateList');
+            list.innerHTML = '';
+
+            candidates.forEach(c => {
+                list.innerHTML += `
+                    <label>
+                        <input type='radio' name='candidate' value='${c.name}' required> 
+                        ${c.icon} ${c.name}
+                    </label><br><br>`;
+            });
+        }
+
+        // Login (no verification, only check if already voted)
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let user = document.getElementById('username').value.trim();
+            let pass = document.getElementById('password').value.trim();
+            let userKey = user + "_" + pass;
+
+            let votedUsers = JSON.parse(localStorage.getItem("votedUsers") || "{}");
+
+            if (votedUsers[userKey] === true) {
+                alert("You have already voted!");
+                return;
+            }
+
+            localStorage.setItem("currentUser", userKey);
+
+            document.getElementById('loginForm').style.display = 'none';
+            loadCandidates();
+            document.getElementById('voteForm').style.display = 'block';
+        });
+
+        // Submit vote
+        document.getElementById('voteBtn').addEventListener('click', function(){
+            const choice = document.querySelector("input[name='candidate']:checked");
+            if (!choice) { alert('Please select a candidate'); return; }
+
+            let userKey = localStorage.getItem("currentUser");
+
+            let votes = JSON.parse(localStorage.getItem('votes') || '{}');
+            votes[choice.value] = (votes[choice.value] || 0) + 1;
+
+            let votedUsers = JSON.parse(localStorage.getItem("votedUsers") || "{}");
+            votedUsers[userKey] = true;
+
+            localStorage.setItem('votes', JSON.stringify(votes));
+            localStorage.setItem('votedUsers', JSON.stringify(votedUsers));
+
+            document.getElementById('result').innerHTML =
+                `Vote recorded successfully for <b>${choice.value}</b>.`;
+
+            document.getElementById('voteForm').style.display = 'none';
+        });
+    </script>
+
+</body>
+</html>
